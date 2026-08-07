@@ -488,7 +488,7 @@ public class ShapesExtractor {
                             annotateWithSupportAndConfidence(propShape, localBuilder, tuple3);
                         } else {
                             //objectType = objectType.replace("<", "").replace(">", "");
-                            if (Utils.isValidIRI(objectType) && !objectType.equals(Constants.OBJECT_UNDEFINED_TYPE)) {
+                            if (Utils.isValidIRI(objectType) && !objectType.startsWith(Constants.OBJECT_UNDEFINED_TYPE)) {
                                 IRI objectTypeIri = factory.createIRI(objectType);
                                 b.subject(propShape).add(SHACL.CLASS, objectTypeIri);
                                 b.subject(propShape).add(SHACL.NODE_KIND_PROP, SHACL.IRI);
@@ -499,9 +499,11 @@ public class ShapesExtractor {
                                 //System.out.println("INVALID Object Type IRI: " + objectType);
                                 b.subject(propShape).add(SHACL.NODE_KIND_PROP, SHACL.IRI);
                                 annotateWithSupportAndConfidence(propShape, localBuilder, tuple3);
-                                if (objectType.equals(Constants.OBJECT_UNDEFINED_TYPE)) {
-                                    b.subject(propShape).add(SHACL.MIN_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
-                                    if(Main.addExamples){ exampleManager.setPropertyMinCount(encodedClassIRI, prop, 1); }
+                                if (objectType.startsWith(Constants.OBJECT_UNDEFINED_TYPE + "_")) {
+                                    String domain = objectType.replace(Constants.OBJECT_UNDEFINED_TYPE + "_", "");
+                                    b.subject(propShape).add(Constants.QSE_AUTHORITY, domain);
+                                    // b.subject(propShape).add(SHACL.MIN_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
+                                    // if(Main.addExamples){ exampleManager.setPropertyMinCount(encodedClassIRI, prop, 1); }
                                 }
                             }
                         }
@@ -545,7 +547,7 @@ public class ShapesExtractor {
                             annotateWithSupportAndConfidence(currentMember, localBuilder, tuple3);
                             
                         } else {
-                            if (Utils.isValidIRI(objectType) && !objectType.equals(Constants.OBJECT_UNDEFINED_TYPE)) {
+                            if (Utils.isValidIRI(objectType) && !objectType.startsWith(Constants.OBJECT_UNDEFINED_TYPE)) {
                                 IRI objectTypeIri = factory.createIRI(objectType);
                                 localBuilder.subject(currentMember).add(SHACL.CLASS, objectTypeIri);
                                 localBuilder.subject(currentMember).add(SHACL.NODE_KIND_PROP, SHACL.IRI);
@@ -554,6 +556,10 @@ public class ShapesExtractor {
                                 //System.out.println("INVALID Object Type IRI: " + objectType);
                                 localBuilder.subject(currentMember).add(SHACL.NODE_KIND_PROP, SHACL.IRI);
                                 annotateWithSupportAndConfidence(currentMember, localBuilder, tuple3);
+                                if (objectType.startsWith(Constants.OBJECT_UNDEFINED_TYPE + "_")) {
+                                    String domain = objectType.replace(Constants.OBJECT_UNDEFINED_TYPE + "_", "");
+                                    localBuilder.subject(currentMember).add(Constants.QSE_AUTHORITY, domain);
+                                }
                             }
                         }
                     } else {

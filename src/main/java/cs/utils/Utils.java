@@ -30,8 +30,31 @@ public class Utils {
         dtf.format(now);
     }
     
+    // public static boolean isValidIRI(String iri) {
+    //     return iri.indexOf(':') > 0;
+    // }
     public static boolean isValidIRI(String iri) {
-        return iri.indexOf(':') > 0;
+        if (iri == null) return false;
+        String trimmed = iri.trim();
+        
+        if (trimmed.startsWith("\"")) {
+            return false;
+        }
+        
+        try {
+            String cleanIri = trimmed.replace("<", "").replace(">", "").trim();
+            java.net.URI uri = new java.net.URI(cleanIri);
+            
+            return uri.isAbsolute() && (
+                cleanIri.startsWith("http://") || 
+                cleanIri.startsWith("https://") || 
+                cleanIri.startsWith("urn:") || 
+                cleanIri.startsWith("ftp://") ||
+                cleanIri.startsWith("file:")
+            );
+        } catch (Exception e) {
+            return false;
+        }
     }
     
     public static IRI toIri(String value) {
@@ -45,6 +68,17 @@ public class Utils {
         BNode bn = new BNode("_:bnodeId", true);
         Node[] triple = new Node[]{subjRes, predRes, bn}; // yields <http://example.org/123> <http://example.org/123> _:bnodeId
         return triple[0];
+    }
+
+    public static String getUriAuthority(String iri) {
+        try {
+            String cleanIri = iri.replace("<", "").replace(">", "").trim();
+            java.net.URI uri = new java.net.URI(cleanIri);
+            String authority = uri.getAuthority();
+            return (authority != null) ? authority : "UNKNOWN_AUTHORITY";
+        } catch (Exception e) {
+            return "INVALID_IRI_AUTHORITY";
+        }
     }
     
     public static void log(String log) {

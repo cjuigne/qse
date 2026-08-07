@@ -357,7 +357,10 @@ public class Parser {
         }
         /*else { // If we do not have data this is an unlabelled IRI objTypes = Collections.emptySet(); }*/
         else {
-            int objID = stringEncoder.encode(Constants.OBJECT_UNDEFINED_TYPE);
+            String domain = Utils.getUriAuthority(nodes[2].getLabel());
+            String dynamicUndefinedType = Constants.OBJECT_UNDEFINED_TYPE + "_" + domain;
+            int objID = stringEncoder.encode(dynamicUndefinedType);
+            
             objTypesIDs.add(objID);
             prop2objTypeTuples = Collections.singleton(new Tuple2<>(propID, objID));
             addEntityToPropertyConstraints(prop2objTypeTuples, subject);
