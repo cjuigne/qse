@@ -9,11 +9,12 @@ import org.semanticweb.yars.nx.BNode;
 import org.semanticweb.yars.nx.Node;
 import org.semanticweb.yars.nx.Resource;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+
+import java.io.*;
+import java.util.zip.GZIPInputStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  * This class contains some random utility functions required throughout the project
@@ -28,6 +29,16 @@ public class Utils {
         LocalDateTime now = LocalDateTime.now();
         System.out.println(dtf.format(now));
         dtf.format(now);
+    }
+
+    public static BufferedReader getBufferedReader(String filePath) throws IOException {
+        InputStream fileStream = new FileInputStream(filePath);
+        
+        if (filePath.toLowerCase().endsWith(".gz")) {
+            fileStream = new GZIPInputStream(fileStream);
+        }
+        
+        return new BufferedReader(new InputStreamReader(fileStream, StandardCharsets.UTF_8));
     }
     
     // public static boolean isValidIRI(String iri) {
