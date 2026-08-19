@@ -52,6 +52,7 @@ public class ShapesExtractor {
     Map<Integer, Integer> sampledPropCount;
     Map<Integer, List<Integer>> sampledEntitiesPerClass; // Size == O(T*entityThreshold)
     Map<Integer, List<Double>> supportToRelativeSupport = new HashMap<>();
+    Map<Tuple2<Integer, Integer>, Integer> classPropertySupport;
     String typePredicate;
     
     /**
@@ -447,6 +448,28 @@ public class ShapesExtractor {
                     .add(RDF.TYPE, SHACL.PROPERTY_SHAPE)
                     .add(SHACL.PATH, property);
 
+// ================= CARDINALITY CONSTRAINTS (Calculé globalement pour la propriété) =================
+            if (!isInstanceTypeProperty) {
+                Tuple2<Integer, Integer> classPropKey = new Tuple2<>(subjEncoded, prop);
+                Integer propSupport = (classPropertySupport != null) ? classPropertySupport.get(classPropKey) : null;
+                Integer totalClassInstances = classInstanceCount.get(subjEncoded);
+
+                // sh:minCount 1 : Si 100% des instances de la classe ont au moins une valeur pour cette propriété
+                if (propSupport != null && totalClassInstances != null && propSupport.equals(totalClassInstances)) {
+                    b.subject(propShape).add(SHACL.MIN_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
+                    if (Main.addExamples) { exampleManager.setPropertyMinCount(encodedClassIRI, prop, 1); }
+                }
+
+                // sh:maxCount 1 : Si aucune instance de la classe n'a plus de 1 valeur
+                if (Main.extractMaxCardConstraints) {
+                    if (propWithClassesHavingMaxCountOne != null 
+                            && propWithClassesHavingMaxCountOne.containsKey(prop) 
+                            && propWithClassesHavingMaxCountOne.get(prop).contains(subjEncoded)) {
+                        b.subject(propShape).add(SHACL.MAX_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
+                        if (Main.addExamples) { exampleManager.setPropertyMaxCount(encodedClassIRI, prop, 1); }
+                    }
+                }
+            }
 
             if (isInstanceTypeProperty) {
                 Resource head = bnode();
@@ -466,18 +489,18 @@ public class ShapesExtractor {
             if (numberOfObjectTypes == 1 && !isInstanceTypeProperty) {
                 propObjectTypes.forEach(encodedObjectType -> {
                     Tuple3<Integer, Integer, Integer> tuple3 = new Tuple3<>(encoder.encode(subj.stringValue()), prop, encodedObjectType);
-                    if (shapeTripletSupport.containsKey(tuple3)) {
-                        if (shapeTripletSupport.get(tuple3).getSupport().equals(classInstanceCount.get(encoder.encode(subj.stringValue())))) {
-                            b.subject(propShape).add(SHACL.MIN_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
-                            if (Main.addExamples){ exampleManager.setPropertyMinCount(encodedClassIRI, prop, 1); }
-                        }
-                        if (Main.extractMaxCardConstraints) {
-                            if (propWithClassesHavingMaxCountOne.containsKey(prop) && propWithClassesHavingMaxCountOne.get(prop).contains(subjEncoded)) {
-                                b.subject(propShape).add(SHACL.MAX_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
-                                if(Main.addExamples){ exampleManager.setPropertyMaxCount(encodedClassIRI, prop, 1); }
-                            }
-                        }
-                    }
+                    // if (shapeTripletSupport.containsKey(tuple3)) {
+                    //     if (shapeTripletSupport.get(tuple3).getSupport().equals(classInstanceCount.get(encoder.encode(subj.stringValue())))) {
+                    //         b.subject(propShape).add(SHACL.MIN_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
+                    //         if (Main.addExamples){ exampleManager.setPropertyMinCount(encodedClassIRI, prop, 1); }
+                    //     }
+                    //     if (Main.extractMaxCardConstraints) {
+                    //         if (propWithClassesHavingMaxCountOne.containsKey(prop) && propWithClassesHavingMaxCountOne.get(prop).contains(subjEncoded)) {
+                    //             b.subject(propShape).add(SHACL.MAX_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
+                    //             if(Main.addExamples){ exampleManager.setPropertyMaxCount(encodedClassIRI, prop, 1); }
+                    //         }
+                        // }
+                    // }
                     String objectType = encoder.decode(encodedObjectType);
                     if (objectType != null) {
                         if (objectType.contains(XSD.NAMESPACE) || objectType.contains(RDF.LANGSTRING.toString())) {
@@ -517,24 +540,23 @@ public class ShapesExtractor {
                 List<Resource> members = new ArrayList<>();
                 Resource headMember = bnode();
                 
-                
                 for (Integer encodedObjectType : propObjectTypes) {
                     Tuple3<Integer, Integer, Integer> tuple3 = new Tuple3<>(encoder.encode(subj.stringValue()), prop, encodedObjectType);
                     String objectType = encoder.decode(encodedObjectType);
                     Resource currentMember = bnode();
                     //Cardinality Constraints
-                    if (shapeTripletSupport.containsKey(tuple3)) {
-                        if (shapeTripletSupport.get(tuple3).getSupport().equals(classInstanceCount.get(encoder.encode(subj.stringValue())))) {
-                            b.subject(propShape).add(SHACL.MIN_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
-                            if(Main.addExamples){ exampleManager.setPropertyMinCount(encodedClassIRI, prop, 1); }
-                        }
-                        if (Main.extractMaxCardConstraints) {
-                            if (propWithClassesHavingMaxCountOne.containsKey(prop) && propWithClassesHavingMaxCountOne.get(prop).contains(subjEncoded)) {
-                                b.subject(propShape).add(SHACL.MAX_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
-                                if(Main.addExamples){ exampleManager.setPropertyMaxCount(encodedClassIRI, prop, 1); }
-                            }
-                        }
-                    }
+                    // if (shapeTripletSupport.containsKey(tuple3)) {
+                    //     if (shapeTripletSupport.get(tuple3).getSupport().equals(classInstanceCount.get(encoder.encode(subj.stringValue())))) {
+                    //         b.subject(propShape).add(SHACL.MIN_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
+                    //         if(Main.addExamples){ exampleManager.setPropertyMinCount(encodedClassIRI, prop, 1); }
+                    //     }
+                    //     if (Main.extractMaxCardConstraints) {
+                    //         if (propWithClassesHavingMaxCountOne.containsKey(prop) && propWithClassesHavingMaxCountOne.get(prop).contains(subjEncoded)) {
+                    //             b.subject(propShape).add(SHACL.MAX_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
+                    //             if(Main.addExamples){ exampleManager.setPropertyMaxCount(encodedClassIRI, prop, 1); }
+                    //         }
+                    //     }
+                    // }
                     
                     if (objectType != null) {
                         if (objectType.contains(XSD.NAMESPACE) || objectType.contains(RDF.LANGSTRING.toString())) {
@@ -648,7 +670,28 @@ public class ShapesExtractor {
             b.subject(propShape)
                     .add(RDF.TYPE, SHACL.PROPERTY_SHAPE)
                     .add(SHACL.PATH, property);
-            
+            // ================= CARDINALITY CONSTRAINTS (Positive) =================
+            if (!isInstanceTypeProperty) {
+                Tuple2<Integer, Integer> classPropKey = new Tuple2<>(subjEncoded, prop);
+                Integer propSupport = (classPropertySupport != null) ? classPropertySupport.get(classPropKey) : null;
+                Integer totalClassInstances = classInstanceCount.get(subjEncoded);
+
+                if (propSupport != null && totalClassInstances != null && propSupport.equals(totalClassInstances)) {
+                    b.subject(propShape).add(SHACL.MIN_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
+                    if (Main.addExamples) { exampleManager.setPropertyMinCount(encodedClassIRI, prop, 1); }
+                }
+
+                if (Main.extractMaxCardConstraints) {
+                    if (propWithClassesHavingMaxCountOne != null 
+                            && propWithClassesHavingMaxCountOne.containsKey(prop) 
+                            && propWithClassesHavingMaxCountOne.get(prop).contains(subjEncoded)) {
+                        b.subject(propShape).add(SHACL.MAX_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
+                        if (Main.addExamples) { exampleManager.setPropertyMaxCount(encodedClassIRI, prop, 1); }
+                    }
+                }
+            }
+            // ======================================================================
+
             if (isInstanceTypeProperty) {
                 Resource head = bnode();
                 List<Resource> members = Arrays.asList(new Resource[]{subj});
@@ -667,18 +710,18 @@ public class ShapesExtractor {
             if (numberOfObjectTypes == 1 && !isInstanceTypeProperty) {
                 propObjectTypes.forEach(encodedObjectType -> {
                     Tuple3<Integer, Integer, Integer> tuple3 = new Tuple3<>(encoder.encode(subj.stringValue()), prop, encodedObjectType);
-                    if (shapeTripletSupport.containsKey(tuple3)) {
-                        if (shapeTripletSupport.get(tuple3).getSupport().equals(classInstanceCount.get(encoder.encode(subj.stringValue())))) {
-                            b.subject(propShape).add(SHACL.MIN_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
-                            if(Main.addExamples){ exampleManager.setPropertyMinCount(encodedClassIRI, prop, 1); }
-                        }
-                        if (Main.extractMaxCardConstraints) {
-                            if (propWithClassesHavingMaxCountOne.containsKey(prop) && propWithClassesHavingMaxCountOne.get(prop).contains(subjEncoded)) {
-                                b.subject(propShape).add(SHACL.MAX_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
-                                if(Main.addExamples){ exampleManager.setPropertyMaxCount(encodedClassIRI, prop, 1); }
-                            }
-                        }
-                    }
+                    // if (shapeTripletSupport.containsKey(tuple3)) {
+                    //     if (shapeTripletSupport.get(tuple3).getSupport().equals(classInstanceCount.get(encoder.encode(subj.stringValue())))) {
+                    //         b.subject(propShape).add(SHACL.MIN_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
+                    //         if(Main.addExamples){ exampleManager.setPropertyMinCount(encodedClassIRI, prop, 1); }
+                    //     }
+                    //     if (Main.extractMaxCardConstraints) {
+                    //         if (propWithClassesHavingMaxCountOne.containsKey(prop) && propWithClassesHavingMaxCountOne.get(prop).contains(subjEncoded)) {
+                    //             b.subject(propShape).add(SHACL.MAX_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
+                    //             if(Main.addExamples){ exampleManager.setPropertyMaxCount(encodedClassIRI, prop, 1); }
+                    //         }
+                    //     }
+                    // }
                     String objectType = encoder.decode(encodedObjectType);
                     if (objectType != null) {
                         if (objectType.contains(XSD.NAMESPACE) || objectType.contains(RDF.LANGSTRING.toString())) {
@@ -700,10 +743,10 @@ public class ShapesExtractor {
                                 //System.out.println("INVALID Object Type IRI: " + objectType);
                                 b.subject(propShape).add(SHACL.NODE_KIND_PROP, SHACL.IRI);
                                 annotateWithSupportAndConfidence(propShape, localBuilder, tuple3);
-                                if (objectType.equals(Constants.OBJECT_UNDEFINED_TYPE)) {
-                                    b.subject(propShape).add(SHACL.MIN_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
-                                    if(Main.addExamples){ exampleManager.setPropertyMinCount(encodedClassIRI, prop, 1); }
-                                }
+                                // if (objectType.equals(Constants.OBJECT_UNDEFINED_TYPE)) {
+                                //     b.subject(propShape).add(SHACL.MIN_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
+                                //     if(Main.addExamples){ exampleManager.setPropertyMinCount(encodedClassIRI, prop, 1); }
+                                // }
                             }
                         }
                     } else {
@@ -723,19 +766,19 @@ public class ShapesExtractor {
                     Tuple3<Integer, Integer, Integer> tuple3 = new Tuple3<>(encoder.encode(subj.stringValue()), prop, encodedObjectType);
                     String objectType = encoder.decode(encodedObjectType);
                     Resource currentMember = bnode();
-                    //Cardinality Constraints
-                    if (shapeTripletSupport.containsKey(tuple3)) {
-                        if (shapeTripletSupport.get(tuple3).getSupport().equals(classInstanceCount.get(encoder.encode(subj.stringValue())))) {
-                            b.subject(propShape).add(SHACL.MIN_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
-                            if(Main.addExamples){ exampleManager.setPropertyMinCount(encodedClassIRI, prop, 1); }
-                        }
-                        if (Main.extractMaxCardConstraints) {
-                            if (propWithClassesHavingMaxCountOne.containsKey(prop) && propWithClassesHavingMaxCountOne.get(prop).contains(subjEncoded)) {
-                                b.subject(propShape).add(SHACL.MAX_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
-                                if(Main.addExamples){ exampleManager.setPropertyMaxCount(encodedClassIRI, prop, 1); }
-                            }
-                        }
-                    }
+                    // //Cardinality Constraints
+                    // if (shapeTripletSupport.containsKey(tuple3)) {
+                    //     if (shapeTripletSupport.get(tuple3).getSupport().equals(classInstanceCount.get(encoder.encode(subj.stringValue())))) {
+                    //         b.subject(propShape).add(SHACL.MIN_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
+                    //         if(Main.addExamples){ exampleManager.setPropertyMinCount(encodedClassIRI, prop, 1); }
+                    //     }
+                    //     if (Main.extractMaxCardConstraints) {
+                    //         if (propWithClassesHavingMaxCountOne.containsKey(prop) && propWithClassesHavingMaxCountOne.get(prop).contains(subjEncoded)) {
+                    //             b.subject(propShape).add(SHACL.MAX_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
+                    //             if(Main.addExamples){ exampleManager.setPropertyMaxCount(encodedClassIRI, prop, 1); }
+                    //         }
+                    //     }
+                    // }
                     
                     if (objectType != null) {
                         if (objectType.contains(XSD.NAMESPACE) || objectType.contains(RDF.LANGSTRING.toString())) {
@@ -856,18 +899,18 @@ public class ShapesExtractor {
             if (numberOfObjectTypes == 1 && !isInstanceTypeProperty) {
                 propObjectTypes.forEach(encodedObjectType -> {
                     Tuple3<Integer, Integer, Integer> tuple3 = new Tuple3<>(encoder.encode(subj.stringValue()), prop, encodedObjectType);
-                    if (shapeTripletSupport.containsKey(tuple3)) {
-                        if (shapeTripletSupport.get(tuple3).getSupport().equals(classInstanceCount.get(encoder.encode(subj.stringValue())))) {
-                            b.subject(propShape).add(SHACL.MIN_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
-                            if(Main.addExamples){ exampleManager.setPropertyMinCount(encodedClassIRI, prop, 1); }
-                        }
-                        if (Main.extractMaxCardConstraints) {
-                            if (propWithClassesHavingMaxCountOne.containsKey(prop) && propWithClassesHavingMaxCountOne.get(prop).contains(subjEncoded)) {
-                                b.subject(propShape).add(SHACL.MAX_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
-                                if(Main.addExamples){ exampleManager.setPropertyMaxCount(encodedClassIRI, prop, 1); }
-                            }
-                        }
-                    }
+                    // if (shapeTripletSupport.containsKey(tuple3)) {
+                    //     if (shapeTripletSupport.get(tuple3).getSupport().equals(classInstanceCount.get(encoder.encode(subj.stringValue())))) {
+                    //         b.subject(propShape).add(SHACL.MIN_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
+                    //         if(Main.addExamples){ exampleManager.setPropertyMinCount(encodedClassIRI, prop, 1); }
+                    //     }
+                    //     if (Main.extractMaxCardConstraints) {
+                    //         if (propWithClassesHavingMaxCountOne.containsKey(prop) && propWithClassesHavingMaxCountOne.get(prop).contains(subjEncoded)) {
+                    //             b.subject(propShape).add(SHACL.MAX_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
+                    //             if(Main.addExamples){ exampleManager.setPropertyMaxCount(encodedClassIRI, prop, 1); }
+                    //         }
+                    //     }
+                    // }
                     String objectType = encoder.decode(encodedObjectType);
                     if (objectType != null) {
                         if (objectType.contains(XSD.NAMESPACE) || objectType.contains(RDF.LANGSTRING.toString())) {
@@ -889,10 +932,10 @@ public class ShapesExtractor {
                                 //System.out.println("INVALID Object Type IRI: " + objectType);
                                 b.subject(propShape).add(SHACL.NODE_KIND_PROP, SHACL.IRI);
                                 annotateWithSupportAndConfidence(propShape, localBuilder, tuple3);
-                                if (objectType.equals(Constants.OBJECT_UNDEFINED_TYPE)) {
-                                    b.subject(propShape).add(SHACL.MIN_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
-                                    if(Main.addExamples){ exampleManager.setPropertyMinCount(encodedClassIRI, prop, 1); }
-                                }
+                                // if (objectType.equals(Constants.OBJECT_UNDEFINED_TYPE)) {
+                                //     b.subject(propShape).add(SHACL.MIN_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
+                                //     if(Main.addExamples){ exampleManager.setPropertyMinCount(encodedClassIRI, prop, 1); }
+                                // }
                             }
                         }
                     } else {
@@ -912,19 +955,19 @@ public class ShapesExtractor {
                     Tuple3<Integer, Integer, Integer> tuple3 = new Tuple3<>(encoder.encode(subj.stringValue()), prop, encodedObjectType);
                     String objectType = encoder.decode(encodedObjectType);
                     Resource currentMember = bnode();
-                    //Cardinality Constraints
-                    if (shapeTripletSupport.containsKey(tuple3)) {
-                        if (shapeTripletSupport.get(tuple3).getSupport().equals(classInstanceCount.get(encoder.encode(subj.stringValue())))) {
-                            b.subject(propShape).add(SHACL.MIN_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
-                            if(Main.addExamples){ exampleManager.setPropertyMinCount(encodedClassIRI, prop, 1); }
-                        }
-                        if (Main.extractMaxCardConstraints) {
-                            if (propWithClassesHavingMaxCountOne.containsKey(prop) && propWithClassesHavingMaxCountOne.get(prop).contains(subjEncoded)) {
-                                b.subject(propShape).add(SHACL.MAX_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
-                                if(Main.addExamples){ exampleManager.setPropertyMaxCount(encodedClassIRI, prop, 1); }
-                            }
-                        }
-                    }
+                    // //Cardinality Constraints
+                    // if (shapeTripletSupport.containsKey(tuple3)) {
+                    //     if (shapeTripletSupport.get(tuple3).getSupport().equals(classInstanceCount.get(encoder.encode(subj.stringValue())))) {
+                    //         b.subject(propShape).add(SHACL.MIN_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
+                    //         if(Main.addExamples){ exampleManager.setPropertyMinCount(encodedClassIRI, prop, 1); }
+                    //     }
+                    //     if (Main.extractMaxCardConstraints) {
+                    //         if (propWithClassesHavingMaxCountOne.containsKey(prop) && propWithClassesHavingMaxCountOne.get(prop).contains(subjEncoded)) {
+                    //             b.subject(propShape).add(SHACL.MAX_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
+                    //             if(Main.addExamples){ exampleManager.setPropertyMaxCount(encodedClassIRI, prop, 1); }
+                    //         }
+                    //     }
+                    // }
                     
                     if (objectType != null) {
                         if (objectType.contains(XSD.NAMESPACE) || objectType.contains(RDF.LANGSTRING.toString())) {
@@ -1172,7 +1215,9 @@ public class ShapesExtractor {
         this.sampledEntitiesPerClass = sampledEntitiesPerClass;
     }
     
-    
+    public void setClassPropertySupport(Map<Tuple2<Integer, Integer>, Integer> classPropertySupport) {
+    this.classPropertySupport = classPropertySupport;
+    }
     //============================================= Other Methods ======================================================
     
     public Boolean isSamplingOn() {

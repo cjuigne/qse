@@ -16,90 +16,130 @@ public class StatsComputer {
     Map<Integer, Set<Integer>> propWithClassesHavingMaxCountOne; // Size O(P*T)
     Map<Integer, List<Integer>> sampledEntitiesPerClass;
     Boolean isSamplingOn = false;
+    Map<Tuple2<Integer, Integer>, Integer> classPropertySupport;
+
     
-    public StatsComputer() {this.propWithClassesHavingMaxCountOne = new HashMap<>();}
+    public StatsComputer() {
+        this.propWithClassesHavingMaxCountOne = new HashMap<>();
+        this.classPropertySupport = new HashMap<>();
+        this.shapeTripletSupport = new HashMap<>();}
     
     /**
      * This method is used to compute support and confidence.
      * Additionally, while iterating over entities, we prepare a new Map propWithClassesHavingMaxCountOne to store all the properties (along with their classes) having max count = 1;
      */
     public void computeSupportConfidence(Map<Node, EntityData> entityDataHashMap, Map<Integer, Integer> classEntityCount) {
-        //Compute Support
-        entityDataHashMap.forEach((entity, entityData) -> {
-            Set<Integer> instanceClasses = entityDataHashMap.get(entity).getClassTypes();
-            if (instanceClasses != null) {
-                for (Integer c : instanceClasses) {
-                    for (Tuple2<Integer, Integer> propObjTuple : entityData.getPropertyConstraints()) {
-                        Tuple3<Integer, Integer, Integer> tuple3 = new Tuple3<>(c, propObjTuple._1, propObjTuple._2);
-                        SupportConfidence sc = this.shapeTripletSupport.get(tuple3);
-                        if (sc == null) {
-                            this.shapeTripletSupport.put(tuple3, new SupportConfidence(1));
-                        } else {
-                            //SupportConfidence sc = this.shapeTripletSupport.get(tuple3);
-                            Integer newSupp = sc.getSupport() + 1;
-                            sc.setSupport(newSupp);
-                            this.shapeTripletSupport.put(tuple3, sc);
-                        }
+    //Compute Support
+    Map<Integer, Set<Integer>> observedPropClasses = new HashMap<>();
+    Map<Integer, Set<Integer>> violatingPropClasses = new HashMap<>();
+
+    entityDataHashMap.forEach((entity, entityData) -> {
+        Set<Integer> instanceClasses = entityDataHashMap.get(entity).getClassTypes();
+        if (instanceClasses != null) {
+            Set<Integer> distinctProperties = entityData.propertyConstraintsMap.keySet();
+
+            for (Integer c : instanceClasses) {
+                // minCount - support class - predicate
+                for (Integer propId : distinctProperties) {
+                    Tuple2<Integer, Integer> classPropKey = new Tuple2<>(c, propId);
+                    classPropertySupport.put(classPropKey, classPropertySupport.getOrDefault(classPropKey, 0) + 1);
+                }
+
+                for (Tuple2<Integer, Integer> propObjTuple : entityData.getPropertyConstraints()) {
+                    Tuple3<Integer, Integer, Integer> tuple3 = new Tuple3<>(c, propObjTuple._1, propObjTuple._2);
+                    SupportConfidence sc = this.shapeTripletSupport.get(tuple3);
+                    if (sc == null) {
+                        this.shapeTripletSupport.put(tuple3, new SupportConfidence(1));
+                    } else {
+                        Integer newSupp = sc.getSupport() + 1;
+                        sc.setSupport(newSupp);
+                        this.shapeTripletSupport.put(tuple3, sc);
                     }
                 }
             }
-            
+
             //here keep track of all the properties (along with their classes) having max count = 1;
             if (Main.extractMaxCardConstraints) {
                 entityData.propertyConstraintsMap.forEach((property, propertyData) -> {
-                    if (propertyData.count <= 1) {
-                        propWithClassesHavingMaxCountOne.putIfAbsent(property, new HashSet<>());
-                        assert instanceClasses != null;
-                        propWithClassesHavingMaxCountOne.get(property).addAll(instanceClasses);
+                    observedPropClasses.putIfAbsent(property, new HashSet<>());
+                    observedPropClasses.get(property).addAll(instanceClasses);
+                    if (propertyData.count > 1) {
+                        violatingPropClasses.putIfAbsent(property, new HashSet<>());
+                        violatingPropClasses.get(property).addAll(instanceClasses);
                     }
                 });
             }
-        });
-        
-        //Compute Confidence
-        for (Map.Entry<Tuple3<Integer, Integer, Integer>, SupportConfidence> entry : this.shapeTripletSupport.entrySet()) {
-            SupportConfidence value = entry.getValue();
-            double confidence = (double) value.getSupport() / classEntityCount.get(entry.getKey()._1);
-            value.setConfidence(confidence);
         }
+    });   
+
+    if (Main.extractMaxCardConstraints) {
+        observedPropClasses.forEach((property, classes) -> {
+            Set<Integer> violators = violatingPropClasses.get(property);
+            for (Integer c : classes) {
+                // Si la classe n'est pas dans les violateurs pour cette propriété, alors maxCount = 1 est validé
+                if (violators == null || !violators.contains(c)) {
+                    this.propWithClassesHavingMaxCountOne.putIfAbsent(property, new HashSet<>());
+                    this.propWithClassesHavingMaxCountOne.get(property).add(c);
+                }
+            }
+        });
     }
-    
+
+    //Compute Confidence
+    for (Map.Entry<Tuple3<Integer, Integer, Integer>, SupportConfidence> entry : this.shapeTripletSupport.entrySet()) {
+        SupportConfidence value = entry.getValue();
+        double confidence = (double) value.getSupport() / classEntityCount.get(entry.getKey()._1);
+        value.setConfidence(confidence);
+    }
+}
+
+
     /**
      * This method is used to compute support and confidence where nodes are encoded as integer
      * Additionally, while iterating over entities, we prepare a new Map propWithClassesHavingMaxCountOne to store all the properties (along with their classes) having max count = 1;
      */
     public void computeSupportConfidenceWithEncodedEntities(Map<Integer, EntityData> entityDataMapReservoir, Map<Integer, Integer> classEntityCount) {
-        //Compute Support
+        Map<Integer, Set<Integer>> observedPropClasses = new HashMap<>();
+        Map<Integer, Set<Integer>> violatingPropClasses = new HashMap<>();
+
         entityDataMapReservoir.forEach((entity, entityData) -> {
-            Set<Integer> instanceClasses = entityDataMapReservoir.get(entity).getClassTypes();
-            if (instanceClasses != null) {
-                for (Integer c : instanceClasses) {
-                    for (Tuple2<Integer, Integer> propObjTuple : entityData.getPropertyConstraints()) {
-                        Tuple3<Integer, Integer, Integer> tuple3 = new Tuple3<>(c, propObjTuple._1, propObjTuple._2);
-                        SupportConfidence sc = this.shapeTripletSupport.get(tuple3);
-                        if (sc == null) {
-                            this.shapeTripletSupport.put(tuple3, new SupportConfidence(1));
-                        } else {
-                            //SupportConfidence sc = this.shapeTripletSupport.get(tuple3);
-                            Integer newSupp = sc.getSupport() + 1;
-                            sc.setSupport(newSupp);
-                            this.shapeTripletSupport.put(tuple3, sc);
-                        }
+            Set<Integer> instanceClasses = entityData.getClassTypes();
+            if (instanceClasses == null) return;
+
+            for (Integer c : instanceClasses) {
+                for (Tuple2<Integer, Integer> propObjTuple : entityData.getPropertyConstraints()) {
+                    Tuple3<Integer, Integer, Integer> tuple3 = new Tuple3<>(c, propObjTuple._1, propObjTuple._2);
+                    SupportConfidence sc = this.shapeTripletSupport.get(tuple3);
+                    if (sc == null) {
+                        this.shapeTripletSupport.put(tuple3, new SupportConfidence(1));
+                    } else {
+                        //SupportConfidence sc = this.shapeTripletSupport.get(tuple3);
+                        Integer newSupp = sc.getSupport() + 1;
+                        sc.setSupport(newSupp);
+                        this.shapeTripletSupport.put(tuple3, sc);
                     }
                 }
             }
-            
-            //here keep track of all the properties (along with their classes) having max count = 1;
             if (Main.extractMaxCardConstraints) {
                 entityData.propertyConstraintsMap.forEach((property, propertyData) -> {
-                    if (propertyData.count <= 1) {
-                        propWithClassesHavingMaxCountOne.putIfAbsent(property, new HashSet<>());
-                        assert instanceClasses != null;
-                        propWithClassesHavingMaxCountOne.get(property).addAll(instanceClasses);
+                    observedPropClasses.computeIfAbsent(property, k -> new HashSet<>()).addAll(instanceClasses);
+                    if (propertyData.count > 1) {
+                        violatingPropClasses.computeIfAbsent(property, k -> new HashSet<>()).addAll(instanceClasses);
                     }
                 });
             }
         });
+
+        if (Main.extractMaxCardConstraints) {
+            observedPropClasses.forEach((property, classes) -> {
+                Set<Integer> violators = violatingPropClasses.get(property);
+                for (Integer c : classes) {
+                    if (violators == null || !violators.contains(c)) {
+                        propWithClassesHavingMaxCountOne.computeIfAbsent(property, k -> new HashSet<>()).add(c);
+                    }
+                }
+            });
+        }
         
         //Compute Confidence
         for (Map.Entry<Tuple3<Integer, Integer, Integer>, SupportConfidence> entry : this.shapeTripletSupport.entrySet()) {
@@ -123,6 +163,10 @@ public class StatsComputer {
     public void setPropWithClassesHavingMaxCountOne(Map<Integer, Set<Integer>> propWithClassesHavingMaxCountOne) {
         this.propWithClassesHavingMaxCountOne = propWithClassesHavingMaxCountOne;
     }
+
+    public void setClassPropertySupport(Map<Tuple2<Integer, Integer>, Integer> classPropertySupport) {
+        this.classPropertySupport = classPropertySupport;
+    }
     
     
     //Getters
@@ -132,6 +176,10 @@ public class StatsComputer {
     
     public Map<Tuple3<Integer, Integer, Integer>, SupportConfidence> getShapeTripletSupport() {
         return this.shapeTripletSupport;
+    }
+
+    public Map<Tuple2<Integer, Integer>, Integer> getClassPropertySupport() {
+        return this.classPropertySupport;
     }
     
     //Not used anymore
