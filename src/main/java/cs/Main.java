@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class Main {
     public static String configPath;
@@ -40,6 +41,7 @@ public class Main {
 
     
     public static void main(String[] args) throws Exception {
+        Locale.setDefault(Locale.Category.FORMAT, Locale.US);
         configPath = args[0];
         Logger root = (Logger) LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
         root.setLevel(Level.INFO);
