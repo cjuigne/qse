@@ -452,7 +452,12 @@ public class ShapesExtractor {
             if (!isInstanceTypeProperty) {
                 Tuple2<Integer, Integer> classPropKey = new Tuple2<>(subjEncoded, prop);
                 Integer propSupport = (classPropertySupport != null) ? classPropertySupport.get(classPropKey) : null;
-                Integer totalClassInstances = classInstanceCount.get(subjEncoded);
+                Integer totalClassInstances;
+                if (isSamplingOn && sampledEntitiesPerClass != null && sampledEntitiesPerClass.containsKey(subjEncoded)) {
+                    totalClassInstances = sampledEntitiesPerClass.get(subjEncoded).size();
+                } else {
+                    totalClassInstances = classInstanceCount.get(subjEncoded);
+                }
 
                 // sh:minCount 1 : Si 100% des instances de la classe ont au moins une valeur pour cette propriété
                 if (propSupport != null && totalClassInstances != null && propSupport.equals(totalClassInstances)) {
