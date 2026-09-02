@@ -1,9 +1,13 @@
 package cs.qse.common;
 
 import cs.utils.FilesUtil;
+
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.SHACL;
 import org.eclipse.rdf4j.query.*;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.model.Resource;
+
 
 /**
  * This class is to annotate SHACL shapes with some constraints that require querying shacl shapes, e.g., sh:node.
@@ -53,7 +57,7 @@ public class PostConstraintsAnnotator {
         try (TupleQueryResult result = query.evaluate()) {
             while (result.hasNext()) {
                 BindingSet solution = result.next();
-                insertShNodeConstraint(solution);
+                insertShNodeConstraint((Resource) solution.getValue("propertyShape"), solution);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -74,7 +78,7 @@ public class PostConstraintsAnnotator {
                 try (TupleQueryResult resultB = queryB.evaluate()) {
                     while (resultB.hasNext()) {
                         BindingSet bindingsB = resultB.next(); //bindings : ?propertyShape ?path ?class
-                        insertShNodeConstraint(bindingsB);
+                        insertShNodeConstraint((Resource) bindingsB.getValue("shOrRdfList"),bindingsB);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -88,18 +92,19 @@ public class PostConstraintsAnnotator {
     /**
      *
      */
-    private void insertShNodeConstraint(BindingSet bindings) {
+    private void insertShNodeConstraint(Resource subject, BindingSet bindings) {
         String classVal = bindings.getValue("class").stringValue();
         if (classVal.contains("<"))
             classVal = classVal.substring(1, classVal.length() - 1);
         
         if (isNodeShape(classVal)) {
+            conn.add(subject, SHACL.NODE, SimpleValueFactory.getInstance().createIRI(getNodeShape(classVal)));
             // Annotate with sh:node
-            String insertStatement = "INSERT { <" + bindings.getValue("propertyShape").stringValue() + "> <" + SHACL.NODE + "> <" + getNodeShape(classVal) + "> } " +
-                    " WHERE { <" + bindings.getValue("propertyShape") + "> a <http://www.w3.org/ns/shacl#PropertyShape> . " + " }";
-            //System.out.println(insertStatement);
-            Update updateQuery = conn.prepareUpdate(insertStatement);
-            updateQuery.execute();
+            // String insertStatement = "INSERT { <" + bindings.getValue("propertyShape").stringValue() + "> <" + SHACL.NODE + "> <" + getNodeShape(classVal) + "> } " +
+            //         " WHERE { <" + bindings.getValue("propertyShape") + "> a <http://www.w3.org/ns/shacl#PropertyShape> . " + " }";
+            // //System.out.println(insertStatement);
+            // Update updateQuery = conn.prepareUpdate(insertStatement);
+            // updateQuery.execute();
         }
     }
     
