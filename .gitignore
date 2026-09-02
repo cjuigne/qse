@@ -29,6 +29,8 @@ classes
 
 Output/TEMP/
 settings.gradle
+Output/
+data/
 
 # ignore files in folder foo
 OUTPUT_QUERY/*

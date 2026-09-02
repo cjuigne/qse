@@ -17,6 +17,7 @@ public class Constants {
     
     public static String CONFIDENCE = "http://shaclshapes.org/confidence";
     public static String SUPPORT = "http://shaclshapes.org/support";
+    public static String QSE_AUTHORITY = "http://shaclshapes.org/authority";
     // some constant addresses of files
     public static String MG_VERTICES_FILE = Main.outputFilePath + "/" + Main.datasetName + "_" + "mg_vertices.csv";
     public static String MG_EDGES_FILE = Main.outputFilePath + "/" + Main.datasetName + "_" + "mg_edges.csv";

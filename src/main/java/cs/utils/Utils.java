@@ -80,6 +80,17 @@ public class Utils {
         Node[] triple = new Node[]{subjRes, predRes, bn}; // yields <http://example.org/123> <http://example.org/123> _:bnodeId
         return triple[0];
     }
+
+    public static String getUriAuthority(String iri) {
+        try {
+            String cleanIri = iri.replace("<", "").replace(">", "").trim();
+            java.net.URI uri = new java.net.URI(cleanIri);
+            String authority = uri.getAuthority();
+            return (authority != null) ? authority : "UNKNOWN_AUTHORITY";
+        } catch (Exception e) {
+            return "INVALID_IRI_AUTHORITY";
+        }
+    }
     
     public static void log(String log) {
         try {
