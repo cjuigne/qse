@@ -14,6 +14,7 @@ import org.semanticweb.yars.nx.Node;
 import org.semanticweb.yars.nx.parser.NxParser;
 import org.semanticweb.yars.nx.parser.ParseException;
 
+import java.io.BufferedReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.NumberFormat;
@@ -89,8 +90,10 @@ public class ReservoirSamplingParser extends Parser {
         Random random = new Random(100);
         AtomicInteger lineCounter = new AtomicInteger();
         StandardReservoirSampling srs = new StandardReservoirSampling(entityDataMapContainer, sampledEntitiesPerClass, nodeEncoder, stringEncoder);
-        try {
-            Files.lines(Path.of(rdfFilePath)).forEach(line -> {
+        try (BufferedReader reader = Utils.getBufferedReader(rdfFilePath)) {
+            reader.lines().filter(line -> !line.contains(typePredicate)).forEach(line -> {
+        // try {
+            // Files.lines(Path.of(rdfFilePath)).forEach(line -> {
                 try {
                     
                     Node[] nodes = NxParser.parseNodes(line); // Get [S,P,O] as Node from triple
@@ -126,8 +129,10 @@ public class ReservoirSamplingParser extends Parser {
         Random random = new Random(100);
         AtomicInteger lineCounter = new AtomicInteger();
         NeighborBasedReservoirSampling brs = new NeighborBasedReservoirSampling(entityDataMapContainer, sampledEntitiesPerClass, nodeEncoder, stringEncoder);
-        try {
-            Files.lines(Path.of(rdfFilePath)).forEach(line -> {
+        try (BufferedReader reader = Utils.getBufferedReader(rdfFilePath)) {
+            reader.lines().forEach(line -> {
+        // try {
+            // Files.lines(Path.of(rdfFilePath)).forEach(line -> {
                 try {
                     Node[] nodes = NxParser.parseNodes(line); // Get [S,P,O] as Node from triple
                     if (nodes[1].toString().equals(typePredicate)) { // Check if predicate is rdf:type or equivalent
@@ -165,8 +170,10 @@ public class ReservoirSamplingParser extends Parser {
         int minEntityThreshold = 1;
         int samplingPercentage = Main.entitySamplingTargetPercentage;
         DynamicNeighborBasedReservoirSampling drs = new DynamicNeighborBasedReservoirSampling(entityDataMapContainer, sampledEntitiesPerClass, reservoirCapacityPerClass, nodeEncoder, stringEncoder);
-        try {
-            Files.lines(Path.of(rdfFilePath)).forEach(line -> {
+        try (BufferedReader reader = Utils.getBufferedReader(rdfFilePath)) {
+            reader.lines().forEach(line -> {
+        // try {
+            // Files.lines(Path.of(rdfFilePath)).forEach(line -> {
                 try {
                     Node[] nodes = NxParser.parseNodes(line); // Get [S,P,O] as Node from triple
                    
@@ -233,8 +240,10 @@ public class ReservoirSamplingParser extends Parser {
     protected void entityConstraintsExtraction() {
         StopWatch watch = new StopWatch();
         watch.start();
-        try {
-            Files.lines(Path.of(rdfFilePath)).filter(line -> !line.contains(typePredicate)).forEach(line -> {
+        try (BufferedReader reader = Utils.getBufferedReader(rdfFilePath)) {
+            reader.lines().filter(line -> !line.contains(typePredicate)).forEach(line -> {
+        // try {
+            // Files.lines(Path.of(rdfFilePath)).filter(line -> !line.contains(typePredicate)).forEach(line -> {
                 try {
                     //Declaring required sets
                     Set<Integer> objTypes = new HashSet<>(10);
@@ -244,6 +253,7 @@ public class ReservoirSamplingParser extends Parser {
                     //Node subject = nodes[0];
                     if (nodeEncoder.isNodeExists(nodes[0])) {
                         int subjID = nodeEncoder.getEncodedNode(nodes[0]);
+                        Node object = nodes[2];
                         // if the entity is in the Reservoir, we go for it
                         if (entityDataMapContainer.get(subjID) != null) {
                             String objectType = extractObjectType(nodes[2]);
@@ -369,8 +379,10 @@ public class ReservoirSamplingParser extends Parser {
         System.out.println("Storing labels");
         StopWatch watch = new StopWatch();
         watch.start();
-        try {
-            Files.lines(Path.of(rdfFilePath)).forEach(line -> {
+        try (BufferedReader reader = Utils.getBufferedReader(rdfFilePath)) {
+            reader.lines().forEach(line -> {
+        // try {
+            // Files.lines(Path.of(rdfFilePath)).forEach(line -> {
                 try {
                     Node[] nodes = NxParser.parseNodes(line); // Get [S,P,O] as Node from triple
                     if (labelPredicates.contains(nodes[1].toString())) { // Check if predicate is rdf:label or equivalent

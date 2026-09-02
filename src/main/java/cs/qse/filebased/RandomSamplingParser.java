@@ -9,6 +9,7 @@ import org.semanticweb.yars.nx.Node;
 import org.semanticweb.yars.nx.parser.NxParser;
 import org.semanticweb.yars.nx.parser.ParseException;
 
+import java.io.BufferedReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.NumberFormat;
@@ -43,8 +44,10 @@ public class RandomSamplingParser extends Parser {
         StopWatch watch = new StopWatch();
         watch.start();
         Random random = new Random(100);
-        try {
-            Files.lines(Path.of(rdfFilePath)).forEach(line -> {
+        try (BufferedReader reader = Utils.getBufferedReader(rdfFilePath)) {
+            reader.lines().forEach(line -> {
+        // try {
+            // Files.lines(Path.of(rdfFilePath)).forEach(line -> {
                 try {
                     // Get [S,P,O] as Node from triple
                     Node[] nodes = NxParser.parseNodes(line); // how much time is spent parsing?
@@ -86,9 +89,12 @@ public class RandomSamplingParser extends Parser {
     protected void entityConstraintsExtraction() {
         StopWatch watch = new StopWatch();
         watch.start();
-        try {
-            Files.lines(Path.of(rdfFilePath)).filter(line -> !line.contains(typePredicate)).forEach(line -> {
+        // try {
+            try (BufferedReader reader = Utils.getBufferedReader(rdfFilePath)) {
+            reader.lines().filter(line -> !line.contains(typePredicate)).forEach(line -> {
                 try {
+            // Files.lines(Path.of(rdfFilePath)).filter(line -> !line.contains(typePredicate)).forEach(line -> {
+                // try {
                     //Declaring required sets
                     Set<Integer> objTypes = new HashSet<>(10);
                     Set<Tuple2<Integer, Integer>> prop2objTypeTuples = new HashSet<>(10);

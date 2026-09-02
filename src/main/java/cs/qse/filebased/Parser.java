@@ -14,7 +14,7 @@ import org.semanticweb.yars.nx.Resource;
 import org.semanticweb.yars.nx.parser.NxParser;
 import org.semanticweb.yars.nx.parser.ParseException;
 
-
+import java.io.BufferedReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -100,8 +100,10 @@ public class Parser {
         System.out.println("invoked::firstPass()");
         StopWatch watch = new StopWatch();
         watch.start();
-        try {
-            Files.lines(Path.of(rdfFilePath)).forEach(line -> {
+        try (BufferedReader reader = Utils.getBufferedReader(rdfFilePath)) {
+            reader.lines().forEach(line -> {
+        // try {
+            // Files.lines(Path.of(rdfFilePath)).forEach(line -> {
                 try {
                     Node[] nodes = NxParser.parseNodes(line); // Get [S,P,O] as Node from triple
                     if (nodes[1].toString().equals(typePredicate)) { // Check if predicate is rdf:type or equivalent
@@ -155,8 +157,10 @@ public class Parser {
     protected void entityConstraintsExtraction() {
         StopWatch watch = new StopWatch();
         watch.start();
-        try {
-            Files.lines(Path.of(rdfFilePath)).forEach(line -> {
+        try (BufferedReader reader = Utils.getBufferedReader(rdfFilePath)) {
+            reader.lines().forEach(line -> {
+        // try {
+            // Files.lines(Path.of(rdfFilePath)).forEach(line -> {
                 try {
                     //Declaring required sets
                     Set<Integer> objTypesIDs = new HashSet<>(10);
@@ -258,8 +262,10 @@ public class Parser {
         System.out.println("Storing labels");
         StopWatch watch = new StopWatch();
         watch.start();
-        try {
-            Files.lines(Path.of(rdfFilePath)).forEach(line -> {
+        try (BufferedReader reader = Utils.getBufferedReader(rdfFilePath)) {
+            reader.lines().forEach(line -> {
+        // try {
+            // Files.lines(Path.of(rdfFilePath)).forEach(line -> {
                 try {
                     Node[] nodes = NxParser.parseNodes(line); // Get [S,P,O] as Node from triple
                     if (labelPredicates.contains(nodes[1].toString())) { // Check if predicate is rdf:label or equivalent

@@ -142,8 +142,9 @@ public class ShapesExtractor {
 
 
     private void buildShapes(ModelBuilder b, Integer encodedClassIRI, Map<Integer, Set<Integer>> propToObjectType, ExampleManager exampleManager) {
-        if (Utils.isValidIRI(encoder.decode(encodedClassIRI))) {
-            IRI subj = factory.createIRI(encoder.decode(encodedClassIRI));
+        String decodedIri = encoder.decode(encodedClassIRI);
+        if (Utils.isValidIRI(decodedIri)) {
+            IRI subj = factory.createIRI(decodedIri);
             String nodeShape = Constants.SHAPES_NAMESPACE + subj.getLocalName() + "Shape";
 
             b.subject(nodeShape)
@@ -161,7 +162,7 @@ public class ShapesExtractor {
                 constructPropertyShapes(b, subj, encodedClassIRI, nodeShape, propToObjectType, exampleManager); // Property Shapes
             }
         } else {
-            System.out.println("constructShapeWithoutPruning::INVALID SUBJECT IRI: " + encoder.decode(encodedClassIRI));
+            System.out.println("constructShapeWithoutPruning::INVALID SUBJECT IRI: " + decodedIri);
         }
     }
     
