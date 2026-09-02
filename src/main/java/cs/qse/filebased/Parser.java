@@ -316,6 +316,7 @@ public class Parser {
         String methodName = "extractSHACLShapes:No Pruning";
         ShapesExtractor se = new ShapesExtractor(stringEncoder, shapeTripletSupport, classEntityCount, typePredicate);
         se.setPropWithClassesHavingMaxCountOne(statsComputer.getPropWithClassesHavingMaxCountOne());
+        se.setClassPropertySupport(statsComputer.getClassPropertySupport());
         
         //====================== Enable shapes extraction for specific classes ======================
         if (qseFromSpecificClasses)
