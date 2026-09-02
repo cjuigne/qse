@@ -2,7 +2,7 @@
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
-SELECT DISTINCT ?propertyShape ?path ?class (max(?support) As ?maxSupport) where {
+SELECT DISTINCT ?propertyShape ?path ?class ?shOrRdfList (max(?support) As ?maxSupport) where {
  	BIND(<NODE_SHAPE> AS ?nodeShape)
     BIND(<PROPERTY_SHAPE> AS ?propertyShape)
 	?nodeShape a <http://www.w3.org/ns/shacl#NodeShape> .
@@ -13,5 +13,5 @@ SELECT DISTINCT ?propertyShape ?path ?class (max(?support) As ?maxSupport) where
 	?shOrRdfList <http://shaclshapes.org/support> ?support.
 	?shOrRdfList  <http://www.w3.org/ns/shacl#class> ?class .
 }
-GROUP BY  ?propertyShape ?path ?class
-ORDER BY DESC(?maxSupport) LIMIT 1
+GROUP BY  ?propertyShape ?path ?class ?shOrRdfList
+ORDER BY DESC(?maxSupport)
