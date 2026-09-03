@@ -153,6 +153,10 @@ public class ShapesExtractor {
             //.add(SHACL.IGNORED_PROPERTIES, RDF.TYPE)
             //.add(SHACL.CLOSED, true);
 
+            if (isShClosedActivated()) {
+                b.subject(nodeShape).add(SHACL.CLOSED, true);
+            }
+
             if(isAnnotationOfSupportConfidenceActivated()){
                 b.subject(nodeShape).add(Constants.SUPPORT, classInstanceCount.get(encodedClassIRI));
                 //b.subject(nodeShape).add(VOID.ENTITIES, classInstanceCount.get(encodedClassIRI));
@@ -265,6 +269,11 @@ public class ShapesExtractor {
                 .add(SHACL.TARGET_CLASS, subj);
         //.add(SHACL.IGNORED_PROPERTIES, RDF.TYPE)
         //.add(SHACL.CLOSED, true);
+
+        if (isShClosedActivated()) {
+            b.subject(nodeShape).add(SHACL.CLOSED, true);
+        }
+
         
         if (propToObjectType != null) {
             Map<Integer, Set<Integer>> propToObjectTypesLocalPositive = performPropShapePruningPositive(encodedClassIRI, propToObjectType, confidence, support);
@@ -1256,6 +1265,13 @@ public class ShapesExtractor {
         return flag;
     }
 
+    private boolean isShClosedActivated() {
+        boolean flag = false;
+        if (ConfigManager.getProperty("shacl_closed") != null) {
+            flag = Boolean.parseBoolean(ConfigManager.getProperty("shacl_closed"));
+        }
+        return flag;
+    }
 }
 
 
