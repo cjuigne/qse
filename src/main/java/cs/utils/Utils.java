@@ -3,6 +3,7 @@ package cs.utils;
 import cs.Main;
 import cs.qse.filebased.sampling.BinaryNode;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.util.URIUtil;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.semanticweb.yars.nx.BNode;
@@ -41,20 +42,21 @@ public class Utils {
             return false;
         }
         
-        try {
-            String cleanIri = trimmed.replace("<", "").replace(">", "").trim();
-            java.net.URI uri = new java.net.URI(cleanIri);
+        // try {
+        String cleanIri = trimmed.replace("<", "").replace(">", "").trim();
+            // java.net.URI uri = new java.net.URI(cleanIri);
+        return URIUtil.isValidURIReference(cleanIri);
             
-            return uri.isAbsolute() && (
-                cleanIri.startsWith("http://") || 
-                cleanIri.startsWith("https://") || 
-                cleanIri.startsWith("urn:") || 
-                cleanIri.startsWith("ftp://") ||
-                cleanIri.startsWith("file:")
-            );
-        } catch (Exception e) {
-            return false;
-        }
+        //     return uri.isAbsolute() && (
+        //         cleanIri.startsWith("http://") || 
+        //         cleanIri.startsWith("https://") || 
+        //         cleanIri.startsWith("urn:") || 
+        //         cleanIri.startsWith("ftp://") ||
+        //         cleanIri.startsWith("file:")
+        //     );
+        // } catch (Exception e) {
+        //     return false;
+        // }
     }
     
     public static IRI toIri(String value) {
