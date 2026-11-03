@@ -21,7 +21,7 @@ java {
 }
 
 group 'dk.aau.cs.relweb'
-version 'fix_shClassAttribute-QSE'
+version 'merge-QSE'
 
 repositories {
     mavenCentral()

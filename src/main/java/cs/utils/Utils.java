@@ -93,6 +93,16 @@ public class Utils {
             return "INVALID_IRI_AUTHORITY";
         }
     }
+
+    public static String getUriNamespace(String iri) {
+        try {
+            String cleanIri = iri.replace("<", "").replace(">", "").trim();
+            int idx = URIUtil.getLocalNameIndex(cleanIri);
+            return cleanIri.substring(0, idx);
+        } catch (Exception e) {
+            return "INVALID_IRI_NAMESPACE";
+        }
+    }   
     
     public static void log(String log) {
         try {

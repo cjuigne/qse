@@ -538,8 +538,8 @@ public class ShapesExtractor {
                                 b.subject(propShape).add(SHACL.NODE_KIND_PROP, SHACL.IRI);
                                 annotateWithSupportAndConfidence(propShape, localBuilder, tuple3);
                                 if (objectType.startsWith(Constants.OBJECT_UNDEFINED_TYPE + "_")) {
-                                    String domain = objectType.replace(Constants.OBJECT_UNDEFINED_TYPE + "_", "");
-                                    b.subject(propShape).add(Constants.QSE_AUTHORITY, domain);
+                                    String namespace = objectType.replace(Constants.OBJECT_UNDEFINED_TYPE + "_", "");
+                                    b.subject(propShape).add(Constants.QSE_NAMESPACE, namespace);
                                     // b.subject(propShape).add(SHACL.MIN_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
                                     // if(Main.addExamples){ exampleManager.setPropertyMinCount(encodedClassIRI, prop, 1); }
                                 }
@@ -594,8 +594,8 @@ public class ShapesExtractor {
                                 localBuilder.subject(currentMember).add(SHACL.NODE_KIND_PROP, SHACL.IRI);
                                 annotateWithSupportAndConfidence(currentMember, localBuilder, tuple3);
                                 if (objectType.startsWith(Constants.OBJECT_UNDEFINED_TYPE + "_")) {
-                                    String domain = objectType.replace(Constants.OBJECT_UNDEFINED_TYPE + "_", "");
-                                    localBuilder.subject(currentMember).add(Constants.QSE_AUTHORITY, domain);
+                                    String namespace = objectType.replace(Constants.OBJECT_UNDEFINED_TYPE + "_", "");
+                                    localBuilder.subject(currentMember).add(Constants.QSE_NAMESPACE, namespace);
                                 }
                             }
                         }

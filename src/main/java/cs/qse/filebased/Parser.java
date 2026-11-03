@@ -366,8 +366,8 @@ public class Parser {
         }
         /*else { // If we do not have data this is an unlabelled IRI objTypes = Collections.emptySet(); }*/
         else {
-            String domain = Utils.getUriAuthority(nodes[2].getLabel());
-            String dynamicUndefinedType = Constants.OBJECT_UNDEFINED_TYPE + "_" + domain;
+            String namespace = Utils.getUriNamespace(nodes[2].getLabel());
+            String dynamicUndefinedType = Constants.OBJECT_UNDEFINED_TYPE + "_" + namespace;
             int objID = stringEncoder.encode(dynamicUndefinedType);
             
             objTypesIDs.add(objID);
