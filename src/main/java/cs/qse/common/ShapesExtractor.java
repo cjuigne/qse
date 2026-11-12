@@ -54,6 +54,8 @@ public class ShapesExtractor {
     Map<Integer, List<Double>> supportToRelativeSupport = new HashMap<>();
     Map<Tuple2<Integer, Integer>, Integer> classPropertySupport;
     String typePredicate;
+    String shapesNamespace;
+
     
     /**
      * ============================================= Constructor =======================================================
@@ -67,7 +69,12 @@ public class ShapesExtractor {
         this.shapeTripletSupport = shapeTripletSupport;
         this.classInstanceCount = classInstanceCount;
         this.typePredicate = typePredicate;
-        builder.setNamespace("shape", Constants.SHAPES_NAMESPACE);
+        // builder.setNamespace("shape", Constants.SHAPES_NAMESPACE);
+        this.shapesNamespace = isDatasetNameInShapeNameActivated()
+        ? Constants.SHAPES_NAMESPACE + Main.datasetName + "/"
+        : Constants.SHAPES_NAMESPACE;
+        builder.setNamespace("shape", shapesNamespace);
+
     }
     
     
@@ -82,8 +89,8 @@ public class ShapesExtractor {
         try (RepositoryConnection conn = db.getConnection()) { // Open a connection to the database
 
             constructShapeWithoutPruning(classToPropWithObjTypes, exampleManager, conn);
-            conn.setNamespace("shape", Constants.SHAPES_NAMESPACE);
-            conn.setNamespace("shape", Constants.SHACL_NAMESPACE);
+            conn.setNamespace("shape", shapesNamespace);
+            conn.setNamespace("sh", Constants.SHACL_NAMESPACE);
             
             PostConstraintsAnnotator pca = new PostConstraintsAnnotator(conn);
             pca.addShNodeConstraint();
@@ -145,7 +152,7 @@ public class ShapesExtractor {
         String decodedIri = encoder.decode(encodedClassIRI);
         if (Utils.isValidIRI(decodedIri)) {
             IRI subj = factory.createIRI(decodedIri);
-            String nodeShape = Constants.SHAPES_NAMESPACE + subj.getLocalName() + "Shape";
+            String nodeShape = shapesNamespace + subj.getLocalName() + "Shape";
 
             b.subject(nodeShape)
                     .add(RDF.TYPE, SHACL.NODE_SHAPE)
@@ -182,8 +189,8 @@ public class ShapesExtractor {
         
         try (RepositoryConnection conn = db.getConnection()) { // Open a connection to the database
             constructShapesWithPruning(classToPropWithObjTypes,  exampleManager, confidence, support, conn);
-            conn.setNamespace("shape", Constants.SHAPES_NAMESPACE);
-            conn.setNamespace("shape", Constants.SHACL_NAMESPACE);
+            conn.setNamespace("shape", shapesNamespace);
+            conn.setNamespace("sh", Constants.SHACL_NAMESPACE);
             
             PostConstraintsAnnotator pca_pruned = new PostConstraintsAnnotator(conn);
             pca_pruned.addShNodeConstraint();
@@ -263,7 +270,7 @@ public class ShapesExtractor {
      */
     private void prepareNodeAndPropertyShapes(Double confidence, Integer support, ModelBuilder b, Integer encodedClassIRI, Map<Integer, Set<Integer>> propToObjectType, ExampleManager exampleManager, IRI subj) {
         //String nodeShape = "shape:" + subj.getLocalName() + "Shape";
-        String nodeShape = Constants.SHAPES_NAMESPACE + subj.getLocalName() + "Shape";
+        String nodeShape = shapesNamespace + subj.getLocalName() + "Shape";
         b.subject(nodeShape)
                 .add(RDF.TYPE, SHACL.NODE_SHAPE)
                 .add(SHACL.TARGET_CLASS, subj);
@@ -450,7 +457,7 @@ public class ShapesExtractor {
             }
             propDuplicateDetector.putIfAbsent(localName, 1);
             
-            IRI propShape = factory.createIRI(Constants.SHAPES_NAMESPACE + localName + subj.getLocalName() + "ShapeProperty");
+            IRI propShape = factory.createIRI(shapesNamespace + localName + subj.getLocalName() + "ShapeProperty");
             
             b.subject(nodeShape)
                     .add(SHACL.PROPERTY, propShape);
@@ -684,7 +691,7 @@ public class ShapesExtractor {
             }
             propDuplicateDetector.putIfAbsent(localName, 1);
             
-            IRI propShape = factory.createIRI(Constants.SHAPES_NAMESPACE + localName + subj.getLocalName() + "ShapeProperty");
+            IRI propShape = factory.createIRI(shapesNamespace + localName + subj.getLocalName() + "ShapeProperty");
             
             b.subject(nodeShape)
                     .add(SHACL.PROPERTY, propShape);
@@ -883,7 +890,7 @@ public class ShapesExtractor {
             propDuplicateDetector.putIfAbsent(localName, 1);
             
             //create node shape IRI for each property shape
-            IRI shNotNodeShapeIriForPropShape = factory.createIRI(Constants.SHAPES_NAMESPACE + localName + subj.getLocalName() + "_PS_NotShape");
+            IRI shNotNodeShapeIriForPropShape = factory.createIRI(shapesNamespace + localName + subj.getLocalName() + "_PS_NotShape");
             
             // add sh:not to current node shape
             b.subject(nodeShape).add(SHACL.NOT, shNotNodeShapeIriForPropShape);
@@ -892,7 +899,7 @@ public class ShapesExtractor {
             b.subject(shNotNodeShapeIriForPropShape).add(RDF.TYPE, SHACL.NODE_SHAPE);
             
             //add property shape to current sh:not node shape -> shNotNodeShapeIriForPropShape
-            IRI propShape = factory.createIRI(Constants.SHAPES_NAMESPACE + localName + subj.getLocalName() + "ShapeProperty");
+            IRI propShape = factory.createIRI(shapesNamespace + localName + subj.getLocalName() + "ShapeProperty");
             b.subject(shNotNodeShapeIriForPropShape).add(SHACL.PROPERTY, propShape);
             
             
@@ -1269,6 +1276,14 @@ public class ShapesExtractor {
         boolean flag = false;
         if (ConfigManager.getProperty("shacl_closed") != null) {
             flag = Boolean.parseBoolean(ConfigManager.getProperty("shacl_closed"));
+        }
+        return flag;
+    }
+    
+    private boolean isDatasetNameInShapeNameActivated() {
+        boolean flag = false;
+        if (ConfigManager.getProperty("annotate_dataset_in_shape_name") != null) {
+            flag = Boolean.parseBoolean(ConfigManager.getProperty("annotate_dataset_in_shape_name"));
         }
         return flag;
     }
