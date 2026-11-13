@@ -54,6 +54,8 @@ public class ShapesExtractor {
     Map<Integer, List<Double>> supportToRelativeSupport = new HashMap<>();
     Map<Tuple2<Integer, Integer>, Integer> classPropertySupport;
     String typePredicate;
+    String datasetShapeTag;
+
     
     /**
      * ============================================= Constructor =======================================================
@@ -67,7 +69,7 @@ public class ShapesExtractor {
         this.shapeTripletSupport = shapeTripletSupport;
         this.classInstanceCount = classInstanceCount;
         this.typePredicate = typePredicate;
-        builder.setNamespace("shape", Constants.SHAPES_NAMESPACE);
+        this.datasetShapeTag = isDatasetNameInShapeNameActivated() ? Main.datasetName + "_" : "";
     }
     
     
@@ -83,7 +85,7 @@ public class ShapesExtractor {
 
             constructShapeWithoutPruning(classToPropWithObjTypes, exampleManager, conn);
             conn.setNamespace("shape", Constants.SHAPES_NAMESPACE);
-            conn.setNamespace("shape", Constants.SHACL_NAMESPACE);
+            conn.setNamespace("sh", Constants.SHACL_NAMESPACE);
             
             PostConstraintsAnnotator pca = new PostConstraintsAnnotator(conn);
             pca.addShNodeConstraint();
@@ -145,7 +147,7 @@ public class ShapesExtractor {
         String decodedIri = encoder.decode(encodedClassIRI);
         if (Utils.isValidIRI(decodedIri)) {
             IRI subj = factory.createIRI(decodedIri);
-            String nodeShape = Constants.SHAPES_NAMESPACE + subj.getLocalName() + "Shape";
+            String nodeShape = Constants.SHAPES_NAMESPACE + "NodeShape#" + datasetShapeTag + encodeIriComponent(subj.stringValue());
 
             b.subject(nodeShape)
                     .add(RDF.TYPE, SHACL.NODE_SHAPE)
@@ -183,7 +185,7 @@ public class ShapesExtractor {
         try (RepositoryConnection conn = db.getConnection()) { // Open a connection to the database
             constructShapesWithPruning(classToPropWithObjTypes,  exampleManager, confidence, support, conn);
             conn.setNamespace("shape", Constants.SHAPES_NAMESPACE);
-            conn.setNamespace("shape", Constants.SHACL_NAMESPACE);
+            conn.setNamespace("sh", Constants.SHACL_NAMESPACE);
             
             PostConstraintsAnnotator pca_pruned = new PostConstraintsAnnotator(conn);
             pca_pruned.addShNodeConstraint();
@@ -262,8 +264,8 @@ public class ShapesExtractor {
      * QSE-Pruned sub-method
      */
     private void prepareNodeAndPropertyShapes(Double confidence, Integer support, ModelBuilder b, Integer encodedClassIRI, Map<Integer, Set<Integer>> propToObjectType, ExampleManager exampleManager, IRI subj) {
-        //String nodeShape = "shape:" + subj.getLocalName() + "Shape";
-        String nodeShape = Constants.SHAPES_NAMESPACE + subj.getLocalName() + "Shape";
+       String nodeShape = Constants.SHAPES_NAMESPACE + "NodeShape#" + datasetShapeTag + encodeIriComponent(subj.stringValue());
+
         b.subject(nodeShape)
                 .add(RDF.TYPE, SHACL.NODE_SHAPE)
                 .add(SHACL.TARGET_CLASS, subj);
@@ -429,29 +431,29 @@ public class ShapesExtractor {
      * SHARED METHOD (QSE-Default & QSE-Pruned) : to build node and property shapes
      */
     private void constructPropertyShapes(ModelBuilder b, IRI subj, Integer subjEncoded, String nodeShape, Map<Integer, Set<Integer>> propToObjectTypesLocal, ExampleManager exampleManager) {
-        Map<String, Integer> propDuplicateDetector = new HashMap<>();
+        // Map<String, Integer> propDuplicateDetector = new HashMap<>();
         Integer encodedClassIRI = encoder.encode(subj.stringValue());
 
         
         propToObjectTypesLocal.forEach((prop, propObjectTypes) -> {
             ModelBuilder localBuilder = new ModelBuilder();
             IRI property = factory.createIRI(encoder.decode(prop));
-            String localName = property.getLocalName();
+            // String localName = property.getLocalName();
             
             boolean isInstanceTypeProperty = property.toString().equals(remAngBrackets(typePredicate));
-            if (isInstanceTypeProperty) {
-                localName = "instanceType";
-            }
+            // if (isInstanceTypeProperty) {
+                // localName = "instanceType";
+            // }
             
-            if (propDuplicateDetector.containsKey(localName)) {
-                int freq = propDuplicateDetector.get(localName);
-                propDuplicateDetector.put(localName, freq + 1);
-                localName = localName + "_" + freq;
-            }
-            propDuplicateDetector.putIfAbsent(localName, 1);
+            // if (propDuplicateDetector.containsKey(localName)) {
+            //     int freq = propDuplicateDetector.get(localName);
+            //     propDuplicateDetector.put(localName, freq + 1);
+            //     localName = localName + "_" + freq;
+            // }
+            // propDuplicateDetector.putIfAbsent(localName, 1);
             
-            IRI propShape = factory.createIRI(Constants.SHAPES_NAMESPACE + localName + subj.getLocalName() + "ShapeProperty");
-            
+            IRI propShape = factory.createIRI(Constants.SHAPES_NAMESPACE + "PropertyShape#" + datasetShapeTag + encodeIriComponent(subj.stringValue()) + "_" + encodeIriComponent(property.stringValue()));
+
             b.subject(nodeShape)
                     .add(SHACL.PROPERTY, propShape);
             b.subject(propShape)
@@ -686,7 +688,7 @@ public class ShapesExtractor {
      * SHARED METHOD (QSE-Default & QSE-Pruned) : to build node and property shapes with sh:not
      */
     private void constructPropertyShapesWithShNot(ModelBuilder b, IRI subj, Integer subjEncoded, String nodeShape, Map<Integer, Set<Integer>> PropToObjectTypesPositive, Map<Integer, Set<Integer>> propToObjectTypesNegative, ExampleManager exampleManager) {
-        Map<String, Integer> propDuplicateDetector = new HashMap<>();
+        // Map<String, Integer> propDuplicateDetector = new HashMap<>();
 
         Integer encodedClassIRI = encoder.encode(subj.stringValue());
         
@@ -694,20 +696,11 @@ public class ShapesExtractor {
         PropToObjectTypesPositive.forEach((prop, propObjectTypes) -> {
             ModelBuilder localBuilder = new ModelBuilder();
             IRI property = factory.createIRI(encoder.decode(prop));
-            String localName = property.getLocalName();
             
             boolean isInstanceTypeProperty = property.toString().equals(remAngBrackets(typePredicate));
-            if (isInstanceTypeProperty) {localName = "instanceType";}
-            
-            if (propDuplicateDetector.containsKey(localName)) {
-                int freq = propDuplicateDetector.get(localName);
-                propDuplicateDetector.put(localName, freq + 1);
-                localName = localName + "_" + freq;
-            }
-            propDuplicateDetector.putIfAbsent(localName, 1);
-            
-            IRI propShape = factory.createIRI(Constants.SHAPES_NAMESPACE + localName + subj.getLocalName() + "ShapeProperty");
-            
+
+            IRI propShape = factory.createIRI(Constants.SHAPES_NAMESPACE + "PropertyShape#" + datasetShapeTag + encodeIriComponent(subj.stringValue()) + "_" + encodeIriComponent(property.stringValue()));
+
             b.subject(nodeShape)
                     .add(SHACL.PROPERTY, propShape);
             b.subject(propShape)
@@ -915,21 +908,13 @@ public class ShapesExtractor {
         propToObjectTypesNegative.forEach((prop, propObjectTypes) -> {
             ModelBuilder localBuilder = new ModelBuilder();
             IRI property = factory.createIRI(encoder.decode(prop));
-            String localName = property.getLocalName();
+            // String localName = property.getLocalName();
             
             boolean isInstanceTypeProperty = property.toString().equals(remAngBrackets(typePredicate));
-            if (isInstanceTypeProperty) {localName = "instanceType";}
-            
-            if (propDuplicateDetector.containsKey(localName)) {
-                int freq = propDuplicateDetector.get(localName);
-                propDuplicateDetector.put(localName, freq + 1);
-                localName = localName + "_" + freq;
-            }
-            propDuplicateDetector.putIfAbsent(localName, 1);
-            
             //create node shape IRI for each property shape
-            IRI shNotNodeShapeIriForPropShape = factory.createIRI(Constants.SHAPES_NAMESPACE + localName + subj.getLocalName() + "_PS_NotShape");
-            
+            // IRI shNotNodeShapeIriForPropShape = factory.createIRI(shapesNamespace + localName + subj.getLocalName() + "_PS_NotShape");
+            IRI shNotNodeShapeIriForPropShape = factory.createIRI(Constants.SHAPES_NAMESPACE + "PS_NotShape#" + datasetShapeTag + encodeIriComponent(subj.stringValue()) + "_" + encodeIriComponent(property.stringValue()));
+
             // add sh:not to current node shape
             b.subject(nodeShape).add(SHACL.NOT, shNotNodeShapeIriForPropShape);
             
@@ -937,7 +922,8 @@ public class ShapesExtractor {
             b.subject(shNotNodeShapeIriForPropShape).add(RDF.TYPE, SHACL.NODE_SHAPE);
             
             //add property shape to current sh:not node shape -> shNotNodeShapeIriForPropShape
-            IRI propShape = factory.createIRI(Constants.SHAPES_NAMESPACE + localName + subj.getLocalName() + "ShapeProperty");
+            IRI propShape = factory.createIRI(Constants.SHAPES_NAMESPACE + "PropertyShape#" + datasetShapeTag + encodeIriComponent(subj.stringValue()) + "_" + encodeIriComponent(property.stringValue()));
+
             b.subject(shNotNodeShapeIriForPropShape).add(SHACL.PROPERTY, propShape);
             
             
@@ -1340,12 +1326,24 @@ public class ShapesExtractor {
         }
         return flag;
     }
+    
     private boolean isUndefinedTypeNamespaceActivated() {
         boolean flag = true;
         if (ConfigManager.getProperty("annotate_undefined_type_namespace") != null) {
             flag = Boolean.parseBoolean(ConfigManager.getProperty("annotate_undefined_type_namespace"));
         }
         return flag;
+    }
+    
+    private boolean isDatasetNameInShapeNameActivated() {
+        boolean flag = false;
+        if (ConfigManager.getProperty("annotate_dataset_in_shape_name") != null) {
+            flag = Boolean.parseBoolean(ConfigManager.getProperty("annotate_dataset_in_shape_name"));
+        }
+        return flag;
+    }
+    private String encodeIriComponent(String iri) {
+        return java.net.URLEncoder.encode(iri, java.nio.charset.StandardCharsets.UTF_8);
     }
 
 }

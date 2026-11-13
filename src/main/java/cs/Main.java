@@ -132,10 +132,14 @@ public class Main {
         entitySamplingTargetPercentage = Integer.parseInt(paramVal("entity_sampling_target_percentage"));
         qseFromSpecificClasses = isActivated("qse_specific_classes");
         outputFilePath = paramVal("output_file_path");
+        if (paramVal("shapes_base_namespace") != null) {
+            Constants.SHAPES_NAMESPACE = paramVal("shapes_base_namespace");
+        }
         addExamples = isActivated("add_examples");
         exampleIRI = paramVal("example_IRI");
         // Read all possible predicates used for labels
         labelProperties = readLabelProperties();
+
     }
     
     private static void qseExactExecutionWithMinimumParams() {
@@ -147,6 +151,9 @@ public class Main {
         isWikiData = false;
         qseFromSpecificClasses = isActivated("qse_specific_classes");
         outputFilePath = paramVal("output_file_path");
+        if (paramVal("shapes_base_namespace") != null) {
+            Constants.SHAPES_NAMESPACE = paramVal("shapes_base_namespace");
+        }
         addExamples = isActivated("add_examples");
         exampleIRI = paramVal("example_IRI");
         // Read all possible predicates used for labels

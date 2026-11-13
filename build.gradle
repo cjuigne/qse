@@ -21,11 +21,8 @@ java {
 }
 
 group 'dk.aau.cs.relweb'
-<<<<<<< HEAD
-version 'namespace-QSE'
-=======
-version 'fix_instanceTypeHandling'
->>>>>>> main
+version 'main20261113'
+
 
 repositories {
     mavenCentral()
