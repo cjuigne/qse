@@ -486,18 +486,33 @@ public class ShapesExtractor {
                 }
             }
 
+            // if (isInstanceTypeProperty) {
+            //     Resource head = bnode();
+            //     List<Resource> members = Arrays.asList(new Resource[]{subj});
+            //     Model tempModel = RDFCollections.asRDF(members, head, new LinkedHashModel());
+            //     propObjectTypes.forEach(encodedObjectType -> {
+            //         Tuple3<Integer, Integer, Integer> tuple3 = new Tuple3<>(encoder.encode(subj.stringValue()), prop, encodedObjectType);
+            //         annotateWithSupportAndConfidence(propShape, localBuilder, tuple3);
+            //     });
+            //     tempModel.add(propShape, SHACL.IN, head);
+            //     b.build().addAll(tempModel);
+            //     b.build().addAll(localBuilder.build());
+            // }
             if (isInstanceTypeProperty) {
                 Resource head = bnode();
                 List<Resource> members = Arrays.asList(new Resource[]{subj});
                 Model tempModel = RDFCollections.asRDF(members, head, new LinkedHashModel());
-                propObjectTypes.forEach(encodedObjectType -> {
-                    Tuple3<Integer, Integer, Integer> tuple3 = new Tuple3<>(encoder.encode(subj.stringValue()), prop, encodedObjectType);
-                    annotateWithSupportAndConfidence(propShape, localBuilder, tuple3);
-                });
+                if (propObjectTypes.size() == 1) {
+                    propObjectTypes.forEach(encodedObjectType -> {
+                        Tuple3<Integer, Integer, Integer> tuple3 = new Tuple3<>(encoder.encode(subj.stringValue()), prop, encodedObjectType);
+                        annotateWithSupportAndConfidence(propShape, localBuilder, tuple3);
+                    });
+                }
                 tempModel.add(propShape, SHACL.IN, head);
                 b.build().addAll(tempModel);
                 b.build().addAll(localBuilder.build());
             }
+
             
             int numberOfObjectTypes = propObjectTypes.size();
             
@@ -713,18 +728,33 @@ public class ShapesExtractor {
             }
             // ======================================================================
 
+            // if (isInstanceTypeProperty) {
+            //     Resource head = bnode();
+            //     List<Resource> members = Arrays.asList(new Resource[]{subj});
+            //     Model tempModel = RDFCollections.asRDF(members, head, new LinkedHashModel());
+            //     propObjectTypes.forEach(encodedObjectType -> {
+            //         Tuple3<Integer, Integer, Integer> tuple3 = new Tuple3<>(encoder.encode(subj.stringValue()), prop, encodedObjectType);
+            //         annotateWithSupportAndConfidence(propShape, localBuilder, tuple3);
+            //     });
+            //     tempModel.add(propShape, SHACL.IN, head);
+            //     b.build().addAll(tempModel);
+            //     b.build().addAll(localBuilder.build());
+            // }
             if (isInstanceTypeProperty) {
                 Resource head = bnode();
                 List<Resource> members = Arrays.asList(new Resource[]{subj});
                 Model tempModel = RDFCollections.asRDF(members, head, new LinkedHashModel());
-                propObjectTypes.forEach(encodedObjectType -> {
-                    Tuple3<Integer, Integer, Integer> tuple3 = new Tuple3<>(encoder.encode(subj.stringValue()), prop, encodedObjectType);
-                    annotateWithSupportAndConfidence(propShape, localBuilder, tuple3);
-                });
+                if (propObjectTypes.size() == 1) {
+                    propObjectTypes.forEach(encodedObjectType -> {
+                        Tuple3<Integer, Integer, Integer> tuple3 = new Tuple3<>(encoder.encode(subj.stringValue()), prop, encodedObjectType);
+                        annotateWithSupportAndConfidence(propShape, localBuilder, tuple3);
+                    });
+                }
                 tempModel.add(propShape, SHACL.IN, head);
                 b.build().addAll(tempModel);
                 b.build().addAll(localBuilder.build());
             }
+
             
             int numberOfObjectTypes = propObjectTypes.size();
             
@@ -902,18 +932,33 @@ public class ShapesExtractor {
                     .add(RDF.TYPE, SHACL.PROPERTY_SHAPE)
                     .add(SHACL.PATH, property);
             
+            // if (isInstanceTypeProperty) {
+            //     Resource head = bnode();
+            //     List<Resource> members = Arrays.asList(new Resource[]{subj});
+            //     Model tempModel = RDFCollections.asRDF(members, head, new LinkedHashModel());
+            //     propObjectTypes.forEach(encodedObjectType -> {
+            //         Tuple3<Integer, Integer, Integer> tuple3 = new Tuple3<>(encoder.encode(subj.stringValue()), prop, encodedObjectType);
+            //         annotateWithSupportAndConfidence(propShape, localBuilder, tuple3);
+            //     });
+            //     tempModel.add(propShape, SHACL.IN, head);
+            //     b.build().addAll(tempModel);
+            //     b.build().addAll(localBuilder.build());
+            // }
             if (isInstanceTypeProperty) {
                 Resource head = bnode();
                 List<Resource> members = Arrays.asList(new Resource[]{subj});
                 Model tempModel = RDFCollections.asRDF(members, head, new LinkedHashModel());
-                propObjectTypes.forEach(encodedObjectType -> {
-                    Tuple3<Integer, Integer, Integer> tuple3 = new Tuple3<>(encoder.encode(subj.stringValue()), prop, encodedObjectType);
-                    annotateWithSupportAndConfidence(propShape, localBuilder, tuple3);
-                });
+                if (propObjectTypes.size() == 1) {
+                    propObjectTypes.forEach(encodedObjectType -> {
+                        Tuple3<Integer, Integer, Integer> tuple3 = new Tuple3<>(encoder.encode(subj.stringValue()), prop, encodedObjectType);
+                        annotateWithSupportAndConfidence(propShape, localBuilder, tuple3);
+                    });
+                }
                 tempModel.add(propShape, SHACL.IN, head);
                 b.build().addAll(tempModel);
                 b.build().addAll(localBuilder.build());
             }
+
             
             int numberOfObjectTypes = propObjectTypes.size();
             

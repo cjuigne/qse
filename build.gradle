@@ -21,7 +21,7 @@ java {
 }
 
 group 'dk.aau.cs.relweb'
-version 'merge-QSE'
+version 'namespace-QSE'
 
 repositories {
     mavenCentral()
