@@ -500,7 +500,14 @@ public class ShapesExtractor {
             // }
             if (isInstanceTypeProperty) {
                 Resource head = bnode();
-                List<Resource> members = Arrays.asList(new Resource[]{subj});
+                // List<Resource> members = Arrays.asList(new Resource[]{subj});
+                List<Resource> members = new ArrayList<>();
+                for (Integer encodedObjectType : propObjectTypes) {
+                    String objectType = encoder.decode(encodedObjectType);
+                    if (objectType != null && Utils.isValidIRI(objectType) && !objectType.startsWith(Constants.OBJECT_UNDEFINED_TYPE)) {
+                        members.add(factory.createIRI(objectType.replace("<", "").replace(">", "")));
+                    }
+                }
                 Model tempModel = RDFCollections.asRDF(members, head, new LinkedHashModel());
                 if (propObjectTypes.size() == 1) {
                     propObjectTypes.forEach(encodedObjectType -> {
@@ -742,7 +749,15 @@ public class ShapesExtractor {
             // }
             if (isInstanceTypeProperty) {
                 Resource head = bnode();
-                List<Resource> members = Arrays.asList(new Resource[]{subj});
+                // List<Resource> members = Arrays.asList(new Resource[]{subj});
+                List<Resource> members = new ArrayList<>();
+                for (Integer encodedObjectType : propObjectTypes) {
+                    String objectType = encoder.decode(encodedObjectType);
+                    if (objectType != null && Utils.isValidIRI(objectType) && !objectType.startsWith(Constants.OBJECT_UNDEFINED_TYPE)) {
+                        members.add(factory.createIRI(objectType.replace("<", "").replace(">", "")));
+                    }
+                }
+
                 Model tempModel = RDFCollections.asRDF(members, head, new LinkedHashModel());
                 if (propObjectTypes.size() == 1) {
                     propObjectTypes.forEach(encodedObjectType -> {
@@ -946,7 +961,15 @@ public class ShapesExtractor {
             // }
             if (isInstanceTypeProperty) {
                 Resource head = bnode();
-                List<Resource> members = Arrays.asList(new Resource[]{subj});
+                // List<Resource> members = Arrays.asList(new Resource[]{subj});
+                List<Resource> members = new ArrayList<>();
+                for (Integer encodedObjectType : propObjectTypes) {
+                    String objectType = encoder.decode(encodedObjectType);
+                    if (objectType != null && Utils.isValidIRI(objectType) && !objectType.startsWith(Constants.OBJECT_UNDEFINED_TYPE)) {
+                        members.add(factory.createIRI(objectType.replace("<", "").replace(">", "")));
+                    }
+                }
+
                 Model tempModel = RDFCollections.asRDF(members, head, new LinkedHashModel());
                 if (propObjectTypes.size() == 1) {
                     propObjectTypes.forEach(encodedObjectType -> {

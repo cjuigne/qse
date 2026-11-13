@@ -175,9 +175,17 @@ public class Parser {
                     
                     // object is an instance or entity of some class e.g., :Paris is an instance of :City & :Capital
                     if (objectNode instanceof Resource) { //if (objectType.equals("IRI")) {
-                        objTypesIDs = parseIriTypeObject(objTypesIDs, prop2objTypeTuples, nodes, entityNode, propID);
+                        if (nodes[1].toString().equals(typePredicate)) {
+                            int objID = stringEncoder.encode(objectNode.getLabel());
+                            objTypesIDs.add(objID);
+                            prop2objTypeTuples.add(new Tuple2<>(propID, objID));
+                            addEntityToPropertyConstraints(prop2objTypeTuples, entityNode);
+                        } else {
+                            objTypesIDs = parseIriTypeObject(objTypesIDs, prop2objTypeTuples, nodes, entityNode, propID);
+                        }
 
                         if (addExamples) {
+
                             // For each class of the subject node, set the property type to NON-literal
                             Set<Integer> classIDs = entityDataHashMap.get(entityNode).getClassTypes();
                             classIDs.forEach(encodedClassIRI -> {
