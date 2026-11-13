@@ -21,7 +21,7 @@ java {
 }
 
 group 'dk.aau.cs.relweb'
-version 'addDatasetShapeName-20261110-QSE'
+version 'addURIDatasetShapeName-20261112-QSE'
 
 repositories {
     mavenCentral()
