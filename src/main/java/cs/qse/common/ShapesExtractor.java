@@ -559,9 +559,9 @@ public class ShapesExtractor {
                                 //System.out.println("INVALID Object Type IRI: " + objectType);
                                 b.subject(propShape).add(SHACL.NODE_KIND_PROP, SHACL.IRI);
                                 annotateWithSupportAndConfidence(propShape, localBuilder, tuple3);
-                                if (objectType.startsWith(Constants.OBJECT_UNDEFINED_TYPE + "_")) {
+                                if (isUndefinedTypeNamespaceActivated() && objectType.startsWith(Constants.OBJECT_UNDEFINED_TYPE + "_")) {
                                     String namespace = objectType.replace(Constants.OBJECT_UNDEFINED_TYPE + "_", "");
-                                    b.subject(propShape).add(Constants.QSE_NAMESPACE, namespace);
+                                    b.subject(propShape).add(Constants.QSE_OBJECT_NAMESPACE, namespace);
                                     // b.subject(propShape).add(SHACL.MIN_COUNT, factory.createLiteral(XMLDatatypeUtil.parseInteger("1")));
                                     // if(Main.addExamples){ exampleManager.setPropertyMinCount(encodedClassIRI, prop, 1); }
                                 }
@@ -615,9 +615,9 @@ public class ShapesExtractor {
                                 //System.out.println("INVALID Object Type IRI: " + objectType);
                                 localBuilder.subject(currentMember).add(SHACL.NODE_KIND_PROP, SHACL.IRI);
                                 annotateWithSupportAndConfidence(currentMember, localBuilder, tuple3);
-                                if (objectType.startsWith(Constants.OBJECT_UNDEFINED_TYPE + "_")) {
+                                if (isUndefinedTypeNamespaceActivated() && objectType.startsWith(Constants.OBJECT_UNDEFINED_TYPE + "_")) {
                                     String namespace = objectType.replace(Constants.OBJECT_UNDEFINED_TYPE + "_", "");
-                                    localBuilder.subject(currentMember).add(Constants.QSE_NAMESPACE, namespace);
+                                    localBuilder.subject(currentMember).add(Constants.QSE_OBJECT_NAMESPACE, namespace);
                                 }
                             }
                         }
@@ -1340,6 +1340,14 @@ public class ShapesExtractor {
         }
         return flag;
     }
+    private boolean isUndefinedTypeNamespaceActivated() {
+        boolean flag = true;
+        if (ConfigManager.getProperty("annotate_undefined_type_namespace") != null) {
+            flag = Boolean.parseBoolean(ConfigManager.getProperty("annotate_undefined_type_namespace"));
+        }
+        return flag;
+    }
+
 }
 
 

@@ -8,6 +8,8 @@ import cs.Main;
 public class Constants {
     public static String SHAPES_NAMESPACE = "http://shaclshapes.org/";
     public static String SHACL_NAMESPACE = "http://www.w3.org/ns/shacl#";
+    public static String QSE_METADATA_NAMESPACE = "http://inria.fr/metashape/";
+
     public static String MEMBERSHIP_GRAPH_ROOT_NODE = "<http://www.schema.hng.root> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.schema.hng.root#HNG_Root> .";
     public static String RDF_TYPE = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
     public static String INSTANCE_OF = "<http://www.wikidata.org/prop/direct/P31>";
@@ -17,7 +19,9 @@ public class Constants {
     
     public static String CONFIDENCE = "http://shaclshapes.org/confidence";
     public static String SUPPORT = "http://shaclshapes.org/support";
-    public static String QSE_NAMESPACE = "http://shaclshapes.org/namespace";
+    
+    public static String QSE_OBJECT_NAMESPACE = QSE_METADATA_NAMESPACE + "objectNamespace";
+    
     // some constant addresses of files
     public static String MG_VERTICES_FILE = Main.outputFilePath + "/" + Main.datasetName + "_" + "mg_vertices.csv";
     public static String MG_EDGES_FILE = Main.outputFilePath + "/" + Main.datasetName + "_" + "mg_edges.csv";
